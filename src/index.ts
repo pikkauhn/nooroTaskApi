@@ -15,8 +15,19 @@ app.get("/tasks", async (req: Request, res: Response) => {
 });
 
 app.get("/tasks/:id", async (req: Request, res: Response) => {
-  const tasks = await prisma.task.findFirst();
-  res.json(tasks);
+  const { id } = req.params;
+  try {
+    const taskId = parseInt(id);
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+    });
+    if (task) {
+      res.json(task);
+    }
+  } catch (error) {
+    console.error("Error fetching task: ", error);
+    res.status(500).send("Error fetching task");
+  }
 });
 
 app.post("/tasks", async (req: Request, res: Response) => {
@@ -26,23 +37,23 @@ app.post("/tasks", async (req: Request, res: Response) => {
   res.json(task);
 });
 
-app.put('/tasks/:id', async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const task = await prisma.task.update({
-        where: { id: parseInt(id) },
-        data: req.body,
-    });
-    res.json(task);
+app.put("/tasks/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const task = await prisma.task.update({
+    where: { id: parseInt(id) },
+    data: req.body,
+  });
+  res.json(task);
 });
 
-app.delete('/tasks/:id', async (req: Request, res: Response) => {
-    const { id } = req.params;
-    await prisma.task.delete({
-        where: { id: parseInt(id) },
-    });
-    res.sendStatus(204);
+app.delete("/tasks/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  await prisma.task.delete({
+    where: { id: parseInt(id) },
+  });
+  res.sendStatus(204);
 });
 
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });
